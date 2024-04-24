@@ -5,6 +5,39 @@ import pygame
 from PIL import Image, ImageTk
 import io
 import os
+import time
+
+choixModeJeu = int(input("Saisir le mode de jeu : 1 (Jeu à 2 joueurs), 2 (Jeu contre IA) --> "))
+
+valeurPieces = {chess.PAWN: 1, chess.KNIGHT: 3.25, chess.BISHOP: 3.25, chess.ROOK: 5, chess.QUEEN: 9.75, chess.KING: 0}
+
+def evaluationBoard(board): # Permettra d'évaluer les coups possibles pour choisir le meilleur possible
+    valeur = 0
+    for p in board.piece_map().values():
+        valeur += valeurPieces.get(p.piece_type, 0) * (-1 if p.color == chess.WHITE else 1)
+    return valeur
+
+def hill_climbing(board):
+    bestMove = None
+    bestEvaluate = float('-inf')
+
+    for move in board.legal_moves:
+        board.push(move) 
+        eval_move = evaluationBoard(board)    
+
+        caseTo = move.to_square
+        piece = board.piece_at(caseTo)
+        if piece.piece_type == chess.PAWN:
+            eval_move += 0.04
+
+
+        if eval_move > bestEvaluate:
+            bestMove = move
+            bestEvaluate = eval_move
+        board.pop() 
+
+    print("Meilleur score : " + str(bestEvaluate))
+    return bestMove
 
 plateau = chess.Board()
 board_path = "board.png"
@@ -28,6 +61,17 @@ while not plateau.is_checkmate(): # True si le joueur à qui c'est le tour est e
         print("Au tour des blancs !")
     else:
         print("Au tour des noirs !")
+        if choixModeJeu==2 : # Les pions noirs sont joués par l'IA (juste hill climbing pour l'instant)
+            plateau.push(hill_climbing(plateau))
+            svg_data = chess.svg.board(plateau)
+            cairosvg.svg2png(bytestring=svg_data, write_to=board_path)
+            boardImg = pygame.image.load(board_path)
+            window.blit(boardImg, (0, 0))
+
+            pygame.display.update()
+            time.sleep(0.5) # Délai avant lequel le joueur peut jouer
+            continue
+
 
     hasClickOnce = False
     hasClickTwice = False
