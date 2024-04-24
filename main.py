@@ -32,13 +32,15 @@ while not plateau.is_checkmate(): # True si le joueur à qui c'est le tour est e
     hasClickOnce = False
     hasClickTwice = False
     move_str = ""
+    arrow_start = ()
+    arrow_end = ()
     while not hasClickOnce:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 os.remove(board_path) 
                 pygame.quit()
                 quit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos_x, pos_y = event.pos
                 pos_x-=15 # Attention à bien remettre à 0 les coordonnées du clic à la souris (à cause de la bordure de 15 pixels du plateau de jeu)
                 pos_y-=15
@@ -46,6 +48,9 @@ while not plateau.is_checkmate(): # True si le joueur à qui c'est le tour est e
                     hasClickOnce = True
                     move_str += chr(97 + pos_x//45)
                     move_str += str(8 - pos_y//45)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                hasClickOnce = True
+                arrow_start = event.pos
         if hasClickOnce :
             while not hasClickTwice:
                 for event in pygame.event.get():
@@ -53,7 +58,7 @@ while not plateau.is_checkmate(): # True si le joueur à qui c'est le tour est e
                         os.remove(board_path) 
                         pygame.quit()
                         quit()
-                    if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         hasClickTwice = True
                         pos_x, pos_y = event.pos
                         pos_x-=15 # Attention à bien remettre à 0 les coordonnées du clic à la souris (à cause de la bordure de 15 pixels du plateau de jeu)
@@ -62,6 +67,14 @@ while not plateau.is_checkmate(): # True si le joueur à qui c'est le tour est e
                             hasClickTwice = True
                             move_str += chr(97 + pos_x//45)
                             move_str += str(8 - pos_y//45)
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                        hasClickTwice = True
+                        arrow_end = event.pos
+    
+    if len(arrow_start) == 2 and len(arrow_end) == 2:
+        pygame.draw.line(window, (255, 255, 255), arrow_start, arrow_end, 10)
+        pygame.display.update()
+        continue
     if move_str[0:2] == move_str[2:4] or len(move_str) != 4:
         continue
 
